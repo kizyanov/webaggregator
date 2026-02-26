@@ -13,6 +13,7 @@
             <th>args_symbol</th>
             <th>args_side</th>
             <th>args_size</th>
+            <th>args_funds</th>
             <th>args_price</th>
             <th>args_time_in_force</th>
             <th>args_type</th>
@@ -40,6 +41,11 @@
             <td>
                 {% if let Some(args_size) = event.args_size %}
                 {{ args_size }}
+                {% endif %}
+            </td>
+            <td>
+                {% if let Some(args_funds) = event.args_funds %}
+                {{ args_funds }}
                 {% endif %}
             </td>
             <td>

@@ -66,7 +66,7 @@ pub async fn msgsend(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let start = Instant::now();
 
     let msgsend = sqlx::query_as::<_, MsgSend>(
-        "SELECT exchange, args_symbol, args_side, args_size, args_price, args_time_in_force, args_type, args_auto_borrow, args_auto_repay, args_client_oid, args_order_id, updated_at FROM msgsend ORDER BY updated_at DESC;",
+        "SELECT exchange, args_symbol, args_side, args_size, args_funds, args_price, args_time_in_force, args_type, args_auto_borrow, args_auto_repay, args_client_oid, args_order_id, updated_at FROM msgsend ORDER BY updated_at DESC;",
     )
     .fetch_all(pool.get_ref())
     .await

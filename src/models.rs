@@ -199,6 +199,7 @@ pub struct MsgSend {
     pub args_symbol: Option<String>,
     pub args_side: Option<String>,
     pub args_size: Option<String>,
+    pub args_funds: Option<String>,
     pub args_price: Option<String>,
     pub args_time_in_force: Option<String>,
     pub args_type: Option<String>,
