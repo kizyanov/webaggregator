@@ -13,7 +13,7 @@ pub async fn eventorders(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let start = Instant::now();
 
     let event_orders =
-        sqlx::query_as::<_, EventOrder>("SELECT exchange, status, type_, symbol, side, order_type, fee_type, liquidity, price, order_id, client_oid, trade_id, origin_size, size, filled_size, match_size, match_price, canceled_size, old_size, remain_size, remain_funds, order_time, ts, updated_at FROM orderevent ORDER BY updated_at DESC;")
+        sqlx::query_as::<_, EventOrder>("SELECT exchange, status, type_, symbol, side, order_type, fee_type, liquidity, price, order_id, client_oid, trade_id, origin_size, size, filled_size, match_size, match_price, canceled_size, old_size, remain_size, remain_funds, order_time, ts, updated_at FROM orderevent ORDER BY updated_at DESC LIMIT 1000;")
             .fetch_all(pool.get_ref())
             .await
             .map_err(|e| {

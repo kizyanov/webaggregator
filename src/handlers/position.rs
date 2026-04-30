@@ -12,7 +12,7 @@ pub async fn positionasset(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let start = Instant::now();
 
     let position_asset = sqlx::query_as::<_, PositionAsset>(
-        "SELECT exchange, asset_symbol, asset_total, asset_available, asset_hold, updated_at FROM positionasset ORDER BY updated_at DESC;",
+        "SELECT exchange, asset_symbol, asset_total, asset_available, asset_hold, updated_at FROM positionasset ORDER BY updated_at DESC LIMIT 1000;",
     )
     .fetch_all(pool.get_ref())
     .await
@@ -39,7 +39,7 @@ pub async fn positiondebt(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let start = Instant::now();
 
     let position_debt = sqlx::query_as::<_, PositionDebt>(
-        "SELECT exchange, debt_symbol, debt_value, updated_at FROM positiondebt ORDER BY updated_at DESC;",
+        "SELECT exchange, debt_symbol, debt_value, updated_at FROM positiondebt ORDER BY updated_at DESC LIMIT 1000;",
     )
     .fetch_all(pool.get_ref())
     .await
@@ -66,7 +66,7 @@ pub async fn positionratio(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let start = Instant::now();
 
     let position_ratio = sqlx::query_as::<_, PositionRatio>(
-        "SELECT exchange, debt_ratio, total_asset, margin_coefficient_total_asset, total_debt, updated_at FROM positionratio ORDER BY updated_at DESC;",
+        "SELECT exchange, debt_ratio, total_asset, margin_coefficient_total_asset, total_debt, updated_at FROM positionratio ORDER BY updated_at DESC LIMIT 1000;",
     )
     .fetch_all(pool.get_ref())
     .await
