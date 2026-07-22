@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Ticker {
     pub exchange: String,
     pub symbol: String,
@@ -12,7 +12,7 @@ pub struct Ticker {
     pub maker_coefficient: Option<String>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct EventOrder {
     pub exchange: String,
     pub status: String,
@@ -77,12 +77,12 @@ pub struct Currency {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PgConnection {
     pub total_connections: i64,
     pub active_connections: i64,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PgTableInfo {
     pub schemaname: String,
     pub relname: String,
@@ -96,7 +96,7 @@ pub struct PgTableInfo {
     pub n_live_tup: Option<i64>,
     pub n_dead_tup: Option<i64>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PgTableIndex {
     pub schemaname: String,
     pub relname: String,
@@ -104,7 +104,7 @@ pub struct PgTableIndex {
     pub idx_tup_read: Option<i64>,
     pub idx_tup_fetch: Option<i64>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PgStatStatements {
     pub query: String,
     pub calls: Option<i64>,
@@ -112,7 +112,7 @@ pub struct PgStatStatements {
     pub mean_exec_time: Option<f64>,
     pub rows: Option<i64>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PgStatTableSize {
     pub schemaname: String,
     pub relname: String,
@@ -120,19 +120,19 @@ pub struct PgStatTableSize {
     pub table_size: String,
     pub indexes_size: String,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Event {
     pub exchange: String,
     pub msg: String,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Error {
     pub exchange: String,
     pub msg: String,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PositionRatio {
     pub exchange: String,
     pub debt_ratio: f64,
@@ -141,14 +141,14 @@ pub struct PositionRatio {
     pub total_debt: String,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PositionDebt {
     pub exchange: String,
     pub debt_symbol: String,
     pub debt_value: String,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct PositionAsset {
     pub exchange: String,
     pub asset_symbol: String,
@@ -158,7 +158,7 @@ pub struct PositionAsset {
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Balance {
     pub exchange: String,
     pub account_id: String,
@@ -176,7 +176,7 @@ pub struct Balance {
     pub trade_id: Option<String>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct MsgSend {
     pub exchange: String,
     pub args_symbol: Option<String>,
@@ -192,7 +192,7 @@ pub struct MsgSend {
     pub args_order_id: Option<String>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Bots {
     pub exchange: Option<String>,
     pub entry_client_oid: Option<String>,
@@ -204,7 +204,7 @@ pub struct Bots {
     pub balance: Option<String>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
-#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct MsgEvent {
     pub exchange: String,
     pub msg: Option<String>,

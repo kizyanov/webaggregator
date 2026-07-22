@@ -21,7 +21,6 @@ use crate::handlers::{
 };
 
 use actix_web::{App, HttpServer, middleware, web};
-use anyhow::{Context, Result};
 use dotenvy::dotenv;
 use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
@@ -35,10 +34,10 @@ fn init_tracing() {
         .init();
 }
 
-async fn create_db_pool() -> Result<PgPool> {
-    let database_url = get_env("DATABASE_URL").context("DATABASE_URL not set")?;
+async fn create_db_pool() -> Result<PgPool, String> {
+    let database_url: String = get_env("DATABASE_URL")?;
 
-    PgPoolOptions::new()
+    Ok(PgPoolOptions::new()
         .max_connections(10)
         .min_connections(1)
         .acquire_timeout(Duration::from_secs(10))
@@ -46,7 +45,7 @@ async fn create_db_pool() -> Result<PgPool> {
         .max_lifetime(Duration::from_secs(1800))
         .connect(&database_url)
         .await
-        .context("Failed to connect to PostgreSQL")
+        .map_err(|e| format!("Failed to connect to PostgreSQL:{e}"))?)
 }
 
 fn routes(cfg: &mut web::ServiceConfig) {
@@ -74,7 +73,7 @@ fn routes(cfg: &mut web::ServiceConfig) {
 const SERVER_ADDR: &str = "0.0.0.0:8080";
 
 #[actix_web::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), String> {
     init_tracing();
     dotenv().ok();
 
@@ -88,11 +87,14 @@ async fn main() -> Result<()> {
             .configure(routes)
     })
     .bind(SERVER_ADDR)
-    .with_context(|| format!("Failed to bind server to {}", SERVER_ADDR))?;
+    .map_err(|e| format!("Failed to bind server to {SERVER_ADDR}:{e}"))?;
 
     info!("Server running on http://0.0.0.0:8080");
 
-    server.run().await.context("Server crashed")?;
+    server
+        .run()
+        .await
+        .map_err(|e| format!("Server crashed:{e}"))?;
 
     Ok(())
 }
