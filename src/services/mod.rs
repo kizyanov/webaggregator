@@ -1,5 +1,6 @@
 pub mod balance_service;
 pub mod bot_service;
+pub mod candle_service;
 pub mod currency_service;
 pub mod error_service;
 pub mod event_service;
@@ -16,6 +17,7 @@ pub mod ticker_service;
 
 pub use balance_service::BalanceService;
 pub use bot_service::BotService;
+pub use candle_service::CandleService;
 pub use currency_service::CurrencyService;
 pub use error_service::ErrorService;
 pub use event_service::EventService;

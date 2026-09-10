@@ -270,3 +270,84 @@ pub struct StopOrder {
     pub is_isolated: bool,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
+
+/// Одна свеча из таблицы `candles` (её наполняет сервис kcs-monitor).
+///
+/// `numeric`-колонки приводятся к `float8` прямо в SQL, чтобы отдавать их в
+/// JSON числами; время начала свечи лежит в БД как unix-секунды, поэтому рядом
+/// с `start_ts` идёт вычисленный `start_time`.
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct Candle {
+    pub exchange: String,
+    pub symbol: String,
+    pub timeframe: String,
+    /// Начало свечи, unix-секунды (UTC).
+    pub start_ts: i64,
+    /// То же время как timestamptz (`to_timestamp(start_ts)`).
+    pub start_time: chrono::DateTime<chrono::Utc>,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
+    pub turnover: f64,
+    /// Когда пришло последнее обновление свечи.
+    pub update_time: chrono::DateTime<chrono::Utc>,
+}
+
+/// Сводка по одной серии свечей (биржа + пара + таймфрейм).
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct CandleMeta {
+    pub exchange: String,
+    pub symbol: String,
+    pub timeframe: String,
+    /// Сколько свечей в БД по этой серии.
+    pub candle_count: i64,
+    pub first_start_ts: i64,
+    pub first_start_time: chrono::DateTime<chrono::Utc>,
+    pub last_start_ts: i64,
+    pub last_start_time: chrono::DateTime<chrono::Utc>,
+    pub last_update_time: chrono::DateTime<chrono::Utc>,
+}
+
+/// Свечи одной серии — готово для графика, без группировки на клиенте.
+#[derive(Debug, Serialize)]
+pub struct CandleSeries {
+    pub exchange: String,
+    pub symbol: String,
+    pub timeframe: String,
+    pub candles: Vec<Candle>,
+}
+
+/// Фильтры выборки свечей, разобранные из query-параметров.
+#[derive(Debug, Clone, Default)]
+pub struct CandleFilter {
+    /// Точное совпадение по бирже.
+    pub exchange: Option<String>,
+    /// Список пар (совпадение по любой из них).
+    pub symbols: Option<Vec<String>>,
+    /// Список таймфреймов (совпадение по любому из них).
+    pub timeframes: Option<Vec<String>>,
+    /// Нижняя граница `start_ts`, unix-секунды (включительно).
+    pub from_ts: Option<i64>,
+    /// Верхняя граница `start_ts`, unix-секунды (включительно).
+    pub to_ts: Option<i64>,
+}
+
+/// Направление сортировки по времени начала свечи.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CandleOrder {
+    Asc,
+    Desc,
+}
+
+impl CandleOrder {
+    /// Фрагмент SQL для `ORDER BY`: значение берётся из enum, а не из запроса,
+    /// поэтому подстановка в текст запроса безопасна.
+    pub fn as_sql(self) -> &'static str {
+        match self {
+            CandleOrder::Asc => "ASC",
+            CandleOrder::Desc => "DESC",
+        }
+    }
+}

@@ -6,22 +6,129 @@ on:
     tags: [ 'v*.*.*' ]  # Для автоматического тегирования при релизах
   pull_request:
     branches: [ main ]
+  workflow_dispatch:    # Ручной запуск из вкладки Actions
 
 env:
   CARGO_TERM_COLOR: always
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/webaggregator
+  # Приложение стартует только с живой БД, поэтому smoke-тест поднимает Postgres
+  # (см. services ниже) и ходит в него по localhost: контейнер запускается
+  # с --network host, как в docker-compose.yml.
+  SMOKE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/webaggregator
 
-jobs:  
+# Отменяем устаревшие запуски при новых пушах в тот же ref
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-  # Job для сборки и загрузки Docker-образа в GHCR
+jobs:
+
+  # Качество кода: форматирование, clippy и тесты — на push и PR
+  test:
+    name: Format, Clippy and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+
+    # Версия тулчейна не закреплена намеренно (как в kcs-monitor); если нужно
+    # полное совпадение с Dockerfile, замените на dtolnay/rust-toolchain@1.98.0.
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Cache Cargo
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
+    - name: Lint
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Test
+      run: cargo test --all-features
+
+  # Проверка, что Dockerfile собирается и образ запускается, — на каждом PR
+  # (без публикации в GHCR)
+  build-image:
+    name: Build Docker image (PR check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webaggregator
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build Docker image
+      id: build
+      uses: docker/build-push-action@v7
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        load: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.pull_request.number }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Smoke test image (HTTP + JSON API)
+      run: bash scripts/smoke-test.sh
+      env:
+        IMAGE_ID: ${{ steps.build.outputs.imageid }}
+        DATABASE_URL: ${{ env.SMOKE_DATABASE_URL }}
+
+  # Сборка и публикация в GHCR — только на push (main и теги v*) или вручную
   build-and-push:
     name: Build and Push to GHCR
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' # Только для push, не для PR
+    timeout-minutes: 30
+    if: github.event_name != 'pull_request'
     permissions:
       contents: read
       packages: write
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webaggregator
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
     - name: Checkout code
@@ -46,20 +153,27 @@ jobs:
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
           type=sha,prefix=,suffix=
           type=ref,event=branch
-          type=ref,event=pr
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
 
     - name: Build and push Docker image
+      id: build
       uses: docker/build-push-action@v7
       with:
         context: .
         file: ./Dockerfile
         push: true
+        load: true # грузим в локальный демон, чтобы прогнать smoke-тест
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Smoke test image (HTTP + JSON API)
+      run: bash scripts/smoke-test.sh
+      env:
+        IMAGE_ID: ${{ steps.build.outputs.imageid }}
+        DATABASE_URL: ${{ env.SMOKE_DATABASE_URL }}
 
     - name: Print image info
       run: |

@@ -13,9 +13,6 @@ pub enum AppError {
 
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
-
-    #[error("Internal error: {0}")]
-    Internal(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;
