@@ -1,5 +1,6 @@
 pub mod balance_repository;
 pub mod bot_repository;
+pub mod candle_repository;
 pub mod currency_repository;
 pub mod error_repository;
 pub mod event_repository;
@@ -15,6 +16,7 @@ pub mod ticker_repository;
 
 pub use balance_repository::{BalanceRepository, PostgresBalanceRepository};
 pub use bot_repository::{BotRepository, PostgresBotRepository};
+pub use candle_repository::{CandleRepository, PostgresCandleRepository};
 pub use currency_repository::{CurrencyRepository, PostgresCurrencyRepository};
 pub use error_repository::{ErrorRepository, PostgresErrorRepository};
 pub use event_repository::{EventRepository, PostgresEventRepository};

@@ -1,16 +1,16 @@
 use crate::repositories::PostgresSendOrderRepository;
 use crate::repositories::{
-    PostgresBalanceRepository, PostgresBotRepository, PostgresCurrencyRepository,
-    PostgresErrorRepository, PostgresEventOrderRepository, PostgresEventRepository,
-    PostgresMsgEventRepository, PostgresMsgSendRepository, PostgresPgRepository,
-    PostgresPositionRepository, PostgresStopOrderRepository, PostgresSymbolRepository,
-    PostgresTickerRepository,
+    PostgresBalanceRepository, PostgresBotRepository, PostgresCandleRepository,
+    PostgresCurrencyRepository, PostgresErrorRepository, PostgresEventOrderRepository,
+    PostgresEventRepository, PostgresMsgEventRepository, PostgresMsgSendRepository,
+    PostgresPgRepository, PostgresPositionRepository, PostgresStopOrderRepository,
+    PostgresSymbolRepository, PostgresTickerRepository,
 };
 use crate::services::SendOrderService;
 use crate::services::{
-    BalanceService, BotService, CurrencyService, ErrorService, EventService, MsgEventService,
-    MsgSendService, OrderService, PgService, PositionService, StaticService, StopOrderService,
-    SymbolService, TickerService,
+    BalanceService, BotService, CandleService, CurrencyService, ErrorService, EventService,
+    MsgEventService, MsgSendService, OrderService, PgService, PositionService, StaticService,
+    StopOrderService, SymbolService, TickerService,
 };
 use std::sync::Arc;
 
@@ -18,6 +18,7 @@ use std::sync::Arc;
 pub struct AppState {
     pub balance_service: Arc<BalanceService<PostgresBalanceRepository>>,
     pub bot_service: Arc<BotService<PostgresBotRepository>>,
+    pub candle_service: Arc<CandleService<PostgresCandleRepository>>,
     pub currency_service: Arc<CurrencyService<PostgresCurrencyRepository>>,
     pub error_service: Arc<ErrorService<PostgresErrorRepository>>,
     pub event_service: Arc<EventService<PostgresEventRepository>>,
@@ -40,6 +41,9 @@ impl AppState {
                 pool.clone(),
             ))),
             bot_service: Arc::new(BotService::new(PostgresBotRepository::new(pool.clone()))),
+            candle_service: Arc::new(CandleService::new(PostgresCandleRepository::new(
+                pool.clone(),
+            ))),
             currency_service: Arc::new(CurrencyService::new(PostgresCurrencyRepository::new(
                 pool.clone(),
             ))),

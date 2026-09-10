@@ -18,6 +18,7 @@ use crate::handlers::{
     balance::balances,
     balance_clear::clear_balances,
     bots::bots,
+    candle::{candle_series, candles, candles_meta, latest_candles},
     currency::currencies,
     error_clear::clear_errors,
     errors::errors,
@@ -57,7 +58,7 @@ fn init_tracing(config: &config::LoggingConfig) {
 }
 
 async fn create_db_pool(config: &config::DatabaseConfig) -> Result<PgPool> {
-    Ok(PgPoolOptions::new()
+    PgPoolOptions::new()
         .max_connections(config.max_connections)
         .min_connections(config.min_connections)
         .acquire_timeout(config.acquire_timeout)
@@ -65,7 +66,7 @@ async fn create_db_pool(config: &config::DatabaseConfig) -> Result<PgPool> {
         .max_lifetime(config.max_lifetime)
         .connect(&config.url)
         .await
-        .context("Failed to connect to PostgreSQL")?)
+        .context("Failed to connect to PostgreSQL")
 }
 
 fn routes(cfg: &mut web::ServiceConfig) {
@@ -91,6 +92,10 @@ fn routes(cfg: &mut web::ServiceConfig) {
         .route("/currencies", get().to(currencies))
         .route("/symbols", get().to(symbols))
         .route("/bots", get().to(bots))
+        .route("/api/candles", get().to(candles))
+        .route("/api/candles/latest", get().to(latest_candles))
+        .route("/api/candles/meta", get().to(candles_meta))
+        .route("/api/candles/series/{symbol}", get().to(candle_series))
         .route("/static/style.css", get().to(serve_css))
         .route("/favicon.png", get().to(favicon));
 }
